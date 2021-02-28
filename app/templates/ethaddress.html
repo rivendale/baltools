@@ -22,7 +22,7 @@
        <tr>
         <th>Symbol </th>
         <th>Name   </th>
-        <th>Balance</th>
+        <th># Tokens</th>
         <th>Token Address  </th>
        </tr>
     </thead>
@@ -31,7 +31,7 @@
        <tr>
           <td>{{ walletasset.symbol}}</td>
           <td>{{ walletasset.name}}</td>
-          <td>{{ walletasset.balance }}</td>
+          <td>{{ walletasset.qty }}</td>
           <td>{{ walletasset.tokenaddress }}</td>
       </tr>
      {% endfor %}
@@ -40,7 +40,7 @@
 {% endif %}
 
 {% if pools %}
-<h4><b>Liquidity Pools - Total Revenue: ${{totalrev}}</b></h4>
+<h4><b>Liquidity Pools - Revenue in past 24 hours: ${{totalrev}}</b></h4>
 <table class="table table-striped">
    <thead>
       <tr>

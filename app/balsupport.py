@@ -224,11 +224,13 @@ def getEthWalletTokens(ethaddy):
                             balance=round(balance,4)    
                         else:
                             balance = math.trunc(balance)
-                        qty = str(balance)
-                        try: 
-                            tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress))
-                            #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
-                            #flash(msg)
+                        
+                        try:
+                            if balance > 0.0: 
+                                qty = str(balance)
+                                tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress))
+                                #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
+                                #flash(msg)
                         except:
                             msg = "Error Calculating token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
                             #flash(msg)
