@@ -44,25 +44,35 @@
 <table class="table table-striped">
    <thead>
       <tr>
-       <th>Pool Address    </th>
+      <th>Symbol</th>
+      <th>Name</th>
+      <th># Tokens</th>
+      <th>Token Address    </th>
        <th>% of Pool    </th>
        <th>Swap Fee   </th>
        <th>Swap Volume   </th>
-       <th>Symbol</th>
-       <th>Name</th>
-       <th># Tokens</th>
+       <th>Pool Address</th>
+       
+       
+       
+       
       </tr>
    </thead>
    <tbody>
       {% for pool in pools %}
       <tr>
+         <td>{{ pool.symbol }}</td>
+         <td>{{ pool.name }}</td>
+         <td>{{ pool.qty }}</td>
          <td>{{ pool.tokenaddress}}</td>
          <td>{{ pool.poolpct}}</td>
          <td>{{ pool.swapfee }}</td>
          <td>{{ pool.swapvol }}</td>
-         <td>{{ pool.symbol }}</td>
-         <td>{{ pool.name }}</td>
-         <td>{{ pool.qty }}</td>
+         <td>{{ pool.poolid }}</td>
+         
+         
+         
+         
          </tr>
     {% endfor %}
    </tbody>

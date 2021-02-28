@@ -236,7 +236,7 @@ def getEthWalletTokens(ethaddy):
                             #flash(msg)
                 except:
                     errormsg = "Error reading token " + str(symbol)
-                    flash(errormsg)
+                   # flash(errormsg)
   
             lcv = lcv + 1 
             if (lcv == totalcount):
