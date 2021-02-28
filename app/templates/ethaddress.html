@@ -11,18 +11,36 @@
 
 {% if address %}
 </br>
-<h4>Address: {{ address }}</h4>
+<h4><b>Address: {{ address }}</b></h4>
 </br>
 {% endif %}
 
-{% if totalrev %}
-<br/>
-<h4>24 Hour Revenue: ${{totalrev}}</h4></br>
-</br>
+{% if walletassets %}
+<h4><b>Wallet Tokens</b></h4>
+<table class="table table-striped">
+    <thead>
+       <tr>
+        <th>Symbol </th>
+        <th>Name   </th>
+        <th>Balance</th>
+        <th>Token Address  </th>
+       </tr>
+    </thead>
+    <tbody>
+       {% for walletasset in walletassets %}
+       <tr>
+          <td>{{ walletasset.symbol}}</td>
+          <td>{{ walletasset.name}}</td>
+          <td>{{ walletasset.balance }}</td>
+          <td>{{ walletasset.tokenaddress }}</td>
+      </tr>
+     {% endfor %}
+    </tbody>
+ </table>
 {% endif %}
 
 {% if pools %}
-<h4>Pool - Individual Positions</h4>
+<h4><b>Liquidity Pools - Total Revenue: ${{totalrev}}</b></h4>
 <table class="table table-striped">
    <thead>
       <tr>
@@ -30,9 +48,9 @@
        <th>% of Pool    </th>
        <th>Swap Fee   </th>
        <th>Swap Volume   </th>
-        <th>Symbol</th>
-         <th>Name</th>
-         <th># Tokens</th>
+       <th>Symbol</th>
+       <th>Name</th>
+       <th># Tokens</th>
       </tr>
    </thead>
    <tbody>
@@ -42,18 +60,13 @@
          <td>{{ pool.poolpct}}</td>
          <td>{{ pool.swapfee }}</td>
          <td>{{ pool.swapvol }}</td>
-         
-
-            <td>{{ pool.sym }}</td>
-            <td>{{ pool.name }}</td>
-            <td>{{ pool.qty }}</td>
-
+         <td>{{ pool.symbol }}</td>
+         <td>{{ pool.name }}</td>
+         <td>{{ pool.qty }}</td>
          </tr>
     {% endfor %}
    </tbody>
 </table>
-{% else %}
-<h4>None Found</h4>
 {% endif %}
 
 

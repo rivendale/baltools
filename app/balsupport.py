@@ -9,8 +9,6 @@ from app.models import *
 # Needed to calc today and yesterday timestamps
 from time import time
 
-
-
 def getBalancer(ethaddress):
     # https://github.com/balancer-labs/balancer-subgraph
     # Subgraph: https://thegraph.com/explorer/subgraph/balancer-labs/balancer
@@ -34,7 +32,6 @@ def getBalancer(ethaddress):
     testdata = json.loads(numpooldata)['data']['balancers']
     testdata = str(testdata[0]["poolCount"])
     ##################################
-
 ######## OBTAIN ALL POOL SHARE INFO: User Address, Token Symbol & Name, Balance
     totallcv = 0
     ethstring = '"' + ethaddress + '"'
@@ -159,7 +156,7 @@ def getBalancer(ethaddress):
                         totalshares=str(totalshares)
                         userbpt=str(userbpt)
 
-                        infodata.append(BalancerInfo(rev=tokenrev,swapvol=swapvol,swapfee=tokenswap,tokenaddress=tokenaddress,poolpct=tokenpct,totalshares=totalshares,userbalance=userbpt,useradr=useraddress,sym=symbol,name=name,qty=balance,poolid=poolid))
+                        infodata.append(BalancerInfo(rev=tokenrev,swapvol=swapvol,swapfee=tokenswap,tokenaddress=tokenaddress,poolpct=tokenpct,totalshares=totalshares,userbalance=userbpt,useradr=useraddress,symbol=symbol,name=name,qty=balance,poolid=poolid))
 
         if (lcv < 1000):
             break
@@ -169,3 +166,78 @@ def getBalancer(ethaddress):
 
 
     return infodata,totalrev
+
+
+def getEthWalletTokens(ethaddy):
+    # https://ethereum.stackexchange.com/questions/34335/etherscan-api-get-all-token-balances
+    # https://github.com/EverexIO/Ethplorer/wiki/Ethplorer-API
+    # https://ethplorer.io/wallet/#api
+    # ETHPLORERKEY = "freekey"
+    ETHPLORERKEY = app.config["ETHPLORERAPI"]
+    url = "http://api.ethplorer.io/getAddressInfo/" + str(ethaddy) + "?apiKey=" + ETHPLORERKEY
+    # token info: getTokenInfo
+    tokenlist = []
+    foundBPT = False
+
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        content = response.json()
+
+        # Obtain Ethereum wallet balance 
+        ethbalance = Decimal(content['ETH']['balance'])
+        ethbalance = round(ethbalance,4)
+        tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
+
+        
+
+        # Obtain wallet ERC-20 token balances
+        totalcount = len(content['tokens'])   # total ERC-20 tokens
+        lcv = 0 # set counter to 0 for first ERC-20 token 
+        while True: # loop until counter completes final token in wallet
+            token = content['tokens'][lcv]       
+            tokeninfo = token['tokenInfo']
+            if tokeninfo['holdersCount'] > 0:
+                try:   
+                    notLP = True
+                    balance = Decimal(token['balance'])
+                    decimals = tokeninfo['decimals']
+                    decimals = 10 ** int(decimals)
+                    balance = Decimal(balance / decimals)
+                    symbol = str(tokeninfo['symbol']).upper()
+                    symlen = len(symbol)
+                    tokenaddress = str(tokeninfo['address'])
+                    tokenaddylen = len(tokenaddress)
+                    name = str(tokeninfo['name'])
+                    if symbol == "BPT":
+                        foundBPT = True
+                        notLP = False
+
+                    rules = [balance > 0.0,
+                             symlen > 1,
+                             symlen < 8,
+                             tokenaddylen > 1,
+                             notLP]
+                    if all(rules):
+                        if balance < 100.0:
+                            balance = float(balance)
+                            balance=round(balance,4)    
+                        else:
+                            balance = math.trunc(balance)
+                        qty = str(balance)
+                        try: 
+                            tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress))
+                            #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
+                            #flash(msg)
+                        except:
+                            msg = "Error Calculating token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
+                            #flash(msg)
+                except:
+                    errormsg = "Error reading token " + str(symbol)
+                    flash(errormsg)
+  
+            lcv = lcv + 1 
+            if (lcv == totalcount):
+                break
+     
+    return tokenlist,foundBPT

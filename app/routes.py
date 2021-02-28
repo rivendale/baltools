@@ -3,7 +3,7 @@ from app import app
 from app.forms import *
 from datetime import datetime
 from decimal import *
-from app.baltools import *
+from app.balsupport import *
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -30,13 +30,19 @@ def ethaddress(ethaddress):
     temp = "Test Data placeholder "
 
     # Collect all digital assets in the wallet
-   
+    results1= getEthWalletTokens(ethaddress)
+    walletassets = results1[0]
+    hasBPT = results1[1]
+    pools = ""
+    totalrev = ""
     # From wallet holdings, check for BPTs (Balancer Pool Tokens)
 
     # If BPT found Collect pools the ETH address has 
-    results = getBalancer(ethaddress)
+    if hasBPT:
+        results2 = getBalancer(ethaddress)
+        pools = results2[0]
+        totalrev = results2[1]
 
-    pools = results[0]
-    totalrev = results[1]
+        # Combine Wallet ERC-21 tokens and Balancer Liquidity Pools
 
-    return render_template('ethaddress.html', pools=pools,totalrev=totalrev, address=ethaddress, )
+    return render_template('ethaddress.html', pools=pools,totalrev=totalrev, walletassets=walletassets,address=ethaddress, )
