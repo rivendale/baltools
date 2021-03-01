@@ -1,6 +1,6 @@
 from flask import flash, redirect, render_template, url_for
 from datetime import datetime
-import os, sys, json, array, math, time, csv, io, requests, math
+import os, sys, json, array, math, time, requests
 from operator import itemgetter
 from operator import attrgetter
 from decimal import *
@@ -8,6 +8,14 @@ from app.models import *
 
 # Needed to calc today and yesterday timestamps
 from time import time
+
+# COINGECKO API
+# https://www.coingecko.com/en/api
+# https://www.coingecko.com/en/api#explore-api
+# https://assets.coingecko.com/reports/API/CoinGecko-API-Deck.pdf
+# https://coingecko.com/api/documentations/v3
+
+
 
 def getBalancer(ethaddress):
     # https://github.com/balancer-labs/balancer-subgraph
@@ -83,6 +91,7 @@ def getBalancer(ethaddress):
         data = response.content  
            
         infodata = []
+        LPassets = []
         totalrev = 0
         currpool = "NONE"
 
@@ -148,7 +157,7 @@ def getBalancer(ethaddress):
                         else:
                             balance=Decimal(str(balance)).quantize(Decimal('.001'), rounding=ROUND_DOWN)
 
-                        balance=str(balance)
+                        
                         tokenrev=str(tokenrev)
                         swapvol=str(swapvol)
                         tokenswap=str(tokenswap)
@@ -156,16 +165,52 @@ def getBalancer(ethaddress):
                         totalshares=str(totalshares)
                         userbpt=str(userbpt)
 
-                        infodata.append(BalancerInfo(rev=tokenrev,swapvol=swapvol,swapfee=tokenswap,tokenaddress=tokenaddress,poolpct=tokenpct,totalshares=totalshares,userbalance=userbpt,useradr=useraddress,symbol=symbol,name=name,qty=balance,poolid=poolid))
-
+                        price = "0"
+                        value = "0"
+                        balance=str(balance)
+                        #
+                        infodata.append(BalancerInfo(price=price,value=value,rev=tokenrev,swapvol=swapvol,swapfee=tokenswap,tokenaddress=tokenaddress,poolpct=tokenpct,totalshares=totalshares,userbalance=userbpt,useradr=useraddress,symbol=symbol,name=name,qty=balance,poolid=poolid))
+                        LPassets.append(EthTokens(price=price,value=value,symbol=symbol,name=name,tokenaddress=tokenaddress,qty=balance))
         if (lcv < 1000):
             break
 
     totalrev = str(round(Decimal(totalrev),2))
 
+    return infodata,totalrev, LPassets
 
-
-    return infodata,totalrev
+def consolidate(wallet,pool):
+    # Use Coingecko for pricing via tokenaddress
+    #url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
+    #resp = requests.get(url2)
+    #data = resp.json()
+    #price = Decimal(data[tokenaddress]["usd"])
+    #value = Decimal(price) * Decimal(qty)
+    #value = math.trunc(value)
+    totals = wallet + pool
+    totals = sorted(totals,key=attrgetter('tokenaddress'))
+    totalvalue = 0 
+    for token in totals:
+        try: 
+            tokenaddress = token.tokenaddress
+            if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":
+                tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
+            qty = Decimal(token.qty)
+            url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
+            resp = requests.get(url2)
+            data = resp.json()
+            price = data[tokenaddress]["usd"]
+            price = Decimal(price)
+            sortval = price * qty
+            totalvalue += sortval
+            value = round(float(sortval),2)
+            price = round(float(price),4)
+            token.update(price=str(price),value=str(value),sortval=sortval)
+        except:
+            msg = "error obtaining pricing info for " + str(tokenaddress)
+            flash(msg)
+    totalvalue = float(totalvalue)
+    totals = sorted(totals,key=attrgetter('sortval'),reverse=True)
+    return totals,totalvalue
 
 
 def getEthWalletTokens(ethaddy):
@@ -187,7 +232,10 @@ def getEthWalletTokens(ethaddy):
         # Obtain Ethereum wallet balance 
         ethbalance = Decimal(content['ETH']['balance'])
         ethbalance = round(ethbalance,4)
-        tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
+        price = "0"
+        value = "0"
+        #
+        tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),price=price,value=value,tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
 
         
 
@@ -228,7 +276,9 @@ def getEthWalletTokens(ethaddy):
                         try:
                             if balance > 0.0: 
                                 qty = str(balance)
-                                tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress))
+                                price = "0"
+                                value = "0"
+                                tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress,price=price,value=value))
                                 #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
                                 #flash(msg)
                         except:
@@ -241,5 +291,5 @@ def getEthWalletTokens(ethaddy):
             lcv = lcv + 1 
             if (lcv == totalcount):
                 break
-     
+    tokenlist = sorted(tokenlist,key=attrgetter('tokenaddress')) 
     return tokenlist,foundBPT

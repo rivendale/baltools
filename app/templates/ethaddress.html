@@ -12,7 +12,75 @@
 {% if address %}
 </br>
 <h4><b>Address: {{ address }}</b></h4>
-</br>
+{% if pools %}
+<h4><b>Balancer LPs revenue in past 24 hours: ${{totalrev}}</b></h4>
+{% endif %}
+{% endif %}
+
+{% if totalvalue %}
+<h4><b>Total Balance: ${{totalvalue}}</b></h4>
+{% endif %}
+
+{% if totaltokens %}
+<h4><b>Combined LP and wallet digital assets</b></h4>
+
+<table class="table table-striped">
+    <thead>
+       <tr>
+        <th>Symbol </th>
+        <th>Name   </th>
+        <th>Price</th>
+        <th># Tokens</th>
+        <th>Value</th>
+        <th>Token Address  </th>
+       </tr>
+    </thead>
+    <tbody>
+       {% for token in totaltokens %}
+       <tr>
+          <td>{{ token.symbol}}</td>
+          <td>{{ token.name}}</td>
+          <td>{{ token.price}}</td>
+          <td>{{ token.qty }}</td>
+          <td>${{ token.value}}</td>
+          <td>{{ token.tokenaddress }}</td>
+      </tr>
+     {% endfor %}
+    </tbody>
+ </table>
+{% endif %}
+
+
+{% if pools %}
+<h4><b>Balancer LPs: </b></h4>
+<table class="table table-striped">
+   <thead>
+      <tr>
+      <th>Symbol</th>
+      <th>Name</th>
+      <th># Tokens</th>
+      <th>Token Address    </th>
+       <th>% of Pool    </th>
+       <th>Swap Fee   </th>
+       <th>Swap Volume   </th>
+       <th>Pool Address</th>
+      </tr>
+   </thead>
+   <tbody>
+      {% for pool in pools %}
+      <tr>
+         <td>{{ pool.symbol }}</td>
+         <td>{{ pool.name }}</td>
+         <td>{{ pool.qty }}</td>
+         <td>{{ pool.tokenaddress}}</td>
+         <td>{{ pool.poolpct}}</td>
+         <td>{{ pool.swapfee }}</td>
+         <td>{{ pool.swapvol }}</td>
+         <td>{{ pool.poolid }}</td>  
+         </tr>
+    {% endfor %}
+   </tbody>
+</table>
 {% endif %}
 
 {% if walletassets %}
@@ -38,46 +106,5 @@
     </tbody>
  </table>
 {% endif %}
-
-{% if pools %}
-<h4><b>Liquidity Pools - Revenue in past 24 hours: ${{totalrev}}</b></h4>
-<table class="table table-striped">
-   <thead>
-      <tr>
-      <th>Symbol</th>
-      <th>Name</th>
-      <th># Tokens</th>
-      <th>Token Address    </th>
-       <th>% of Pool    </th>
-       <th>Swap Fee   </th>
-       <th>Swap Volume   </th>
-       <th>Pool Address</th>
-       
-       
-       
-       
-      </tr>
-   </thead>
-   <tbody>
-      {% for pool in pools %}
-      <tr>
-         <td>{{ pool.symbol }}</td>
-         <td>{{ pool.name }}</td>
-         <td>{{ pool.qty }}</td>
-         <td>{{ pool.tokenaddress}}</td>
-         <td>{{ pool.poolpct}}</td>
-         <td>{{ pool.swapfee }}</td>
-         <td>{{ pool.swapvol }}</td>
-         <td>{{ pool.poolid }}</td>
-         
-         
-         
-         
-         </tr>
-    {% endfor %}
-   </tbody>
-</table>
-{% endif %}
-
 
 {% endblock %}

@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import *
 from app.balsupport import *
 
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
@@ -42,7 +43,11 @@ def ethaddress(ethaddress):
         results2 = getBalancer(ethaddress)
         pools = results2[0]
         totalrev = results2[1]
-
+        LPassets = results2[2]
+        #totaltokens = LPassets.update()
+        result3 = consolidate(walletassets,LPassets)
+        totaltokens = result3[0]
+        totalvalue = result3[1]
         # Combine Wallet ERC-21 tokens and Balancer Liquidity Pools
 
-    return render_template('ethaddress.html', pools=pools,totalrev=totalrev, walletassets=walletassets,address=ethaddress, )
+    return render_template('ethaddress.html', pools=pools,totalrev=totalrev, walletassets=walletassets,address=ethaddress,totalvalue=str(totalvalue),totaltokens=totaltokens )
