@@ -18,11 +18,11 @@
 {% endif %}
 
 {% if totalvalue %}
-<h4><b>Total Balance: ${{totalvalue}}</b></h4>
+<h4><b>Total Value of Balancer LPs and Wallet: {{ "${:,.2f}".format(totalvalue)}}</b></h4>
 {% endif %}
 
 {% if totaltokens %}
-<h4><b>Combined LP and wallet digital assets</b></h4>
+<h4><b>Combined Balancer LPs and wallet digital assets</b></h4>
 
 <table class="table table-striped">
     <thead>
@@ -42,7 +42,7 @@
           <td>{{ token.name}}</td>
           <td>{{ token.price}}</td>
           <td>{{ token.qty }}</td>
-          <td>${{ token.value}}</td>
+          <td>{{ "${:,.2f}".format(token.sortval)}}</td>
           <td>{{ token.tokenaddress }}</td>
       </tr>
      {% endfor %}
