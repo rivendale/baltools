@@ -255,7 +255,7 @@ def consolidate(wallets,pools):
             token.update(price=str(price),value=str(value),sortval=sortval)
         except:
             msg = "error obtaining pricing info for " + str(tokenaddress)
-            flash(msg)
+           # flash(msg)
     totalvalue = float(totalvalue)
     totals = sorted(totals,key=attrgetter('sortval'),reverse=True)
     return totals,totalvalue
