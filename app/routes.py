@@ -34,6 +34,7 @@ def ethaddress(ethaddress):
     results1= getEthWalletTokens(ethaddress)
     walletassets = results1[0]
     hasBPT = results1[1]
+    ethbalance = results1[2]
     pools = ""
     totalrev = ""
     # From wallet holdings, check for BPTs (Balancer Pool Tokens)
@@ -50,4 +51,4 @@ def ethaddress(ethaddress):
         totalvalue = result3[1]
         # Combine Wallet ERC-21 tokens and Balancer Liquidity Pools
 
-    return render_template('ethaddress.html', pools=pools,totalrev=totalrev, walletassets=walletassets,address=ethaddress,totalvalue=totalvalue,totaltokens=totaltokens )
+    return render_template('ethaddress.html', pools=pools,ethbalance=str(ethbalance),totalrev=totalrev, walletassets=walletassets,address=ethaddress,totalvalue=totalvalue,totaltokens=totaltokens )

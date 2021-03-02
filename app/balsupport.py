@@ -178,7 +178,7 @@ def getBalancer(ethaddress):
 
     return infodata,totalrev, LPassets
 
-def consolidate(wallet,pool):
+def consolidate(wallets,pools):
     # Use Coingecko for pricing via tokenaddress
     #url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
     #resp = requests.get(url2)
@@ -186,9 +186,57 @@ def consolidate(wallet,pool):
     #price = Decimal(data[tokenaddress]["usd"])
     #value = Decimal(price) * Decimal(qty)
     #value = math.trunc(value)
-    totals = wallet + pool
-    totals = sorted(totals,key=attrgetter('tokenaddress'))
+    
+    
+    #totals = wallet + pool
+    #totals = sorted(totals,key=attrgetter('tokenaddress'))
     totalvalue = 0 
+
+
+    #wallets = sorted(wallets,key=attrgetter('tokenaddress'))
+
+    alltokens = wallets + pools
+    totals = []
+    tokensets = []
+
+    for alltoken in alltokens:
+        tokenaddress = alltoken.tokenaddress
+        if tokenaddress not in tokensets:
+            tokensets.append(tokenaddress)
+
+    for tokenset in tokensets:
+        qty = Decimal(0.0)
+        symbol = ""
+        name = ""
+        for alltoken in alltokens:
+            if tokenset == alltoken.tokenaddress:
+                qty += Decimal(alltoken.qty)
+                #symbol = alltoken.symbol
+                name = alltoken.name
+                tokenaddress = alltoken.tokenaddress
+        qty = str(qty)
+        totals.append(EthTokens(price="0",value="0",sortval=0.0,symbol=symbol,name=name,tokenaddress=tokenaddress,qty=qty))
+
+   # for wallet in wallets:
+      #  tracked.append(pool.tokenaddress)
+   #     qty = Decimal(wallet.qty)
+    #    for pool in pools:
+    #        if wallet.tokenaddress == pool.tokenaddress:
+  #              qty = qty + Decimal(pool.qty)
+ 
+        
+     #   inwallet.append(wallet.tokenaddress)
+   
+   
+   
+
+
+    # pool remaining positions to be added 
+
+
+
+
+
     for token in totals:
         try: 
             tokenaddress = token.tokenaddress
@@ -232,10 +280,8 @@ def getEthWalletTokens(ethaddy):
         # Obtain Ethereum wallet balance 
         ethbalance = Decimal(content['ETH']['balance'])
         ethbalance = round(ethbalance,4)
-        price = "0"
-        value = "0"
         #
-        tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),price=price,value=value,tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
+        #tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),price=price,value=value,tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
 
         
 
@@ -292,4 +338,4 @@ def getEthWalletTokens(ethaddy):
             if (lcv == totalcount):
                 break
     tokenlist = sorted(tokenlist,key=attrgetter('tokenaddress')) 
-    return tokenlist,foundBPT
+    return tokenlist,foundBPT,ethbalance

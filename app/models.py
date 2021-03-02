@@ -17,11 +17,13 @@ class EthTokens(object):
     def __repr__(self):
         return repr((self.tokenaddress,self.symbol,self.name,self.qty,self.price,self.value,self.sortval))
  
+    def updateqty(self,qty):
+        self.qty = qty
+     
     def update(self,price,value,sortval):
         self.price = price
         self.value=value
         self.sortval=sortval
- 
 
 class BalancerInfo(object):
     def __init__(self,swapfee,rev,swapvol,userbalance,price,useradr,symbol,name,qty,poolid,totalshares,poolpct,tokenaddress,value):

@@ -11,16 +11,18 @@
 
 {% if address %}
 </br>
-<h4><b>Address: {{ address }}</b></h4>
+<h4><b>Address: {{ address }}</b></h4></br>
 {% if pools %}
 <h4><b>Balancer LPs revenue in past 24 hours: ${{totalrev}}</b></h4>
 {% endif %}
 {% endif %}
-
 {% if totalvalue %}
 <h4><b>Total Value of Balancer LPs and Wallet: {{ "${:,.2f}".format(totalvalue)}}</b></h4>
 {% endif %}
-
+{% if ethbalance %}
+<h4><b>ETH in wallet: {{ ethbalance }}</b></h4>
+{% endif %}
+</br>
 {% if totaltokens %}
 <h4><b>Combined Balancer LPs and wallet digital assets</b></h4>
 
@@ -106,5 +108,12 @@
     </tbody>
  </table>
 {% endif %}
+
+<h6><b>API Data Providers:</b></br>
+   <a href="https://ethplorer.io/">Wallet address token totals provided by Ethplorer</a></br>
+   <a href="https://www.coingecko.com/">Token prices provided by CoinGecko</a></br>
+   <a href="https://thegraph.com/explorer/subgraph/balancer-labs/balancer">Balancer LPs data provided by The Graph via Balancer's sub-graph</a>
+   </h6>
+
 
 {% endblock %}
