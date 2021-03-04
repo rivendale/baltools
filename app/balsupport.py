@@ -16,6 +16,12 @@ from time import time
 # https://coingecko.com/api/documentations/v3
 
 
+def checkspamtoken(tokenaddress):
+    spamlist = ["0x426ca1ea2406c07d75db9585f22781c096e3d0e0"]
+    if tokenaddress in spamlist:
+        return True
+    else:
+        return False
 
 def getBalancer(ethaddress):
     # https://github.com/balancer-labs/balancer-subgraph
@@ -181,19 +187,8 @@ def getBalancer(ethaddress):
 def consolidate(wallets,pools):
     # Use Coingecko for pricing via tokenaddress
     #url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
-    #resp = requests.get(url2)
-    #data = resp.json()
-    #price = Decimal(data[tokenaddress]["usd"])
-    #value = Decimal(price) * Decimal(qty)
-    #value = math.trunc(value)
-    
-    
-    #totals = wallet + pool
-    #totals = sorted(totals,key=attrgetter('tokenaddress'))
+ 
     totalvalue = 0 
-
-
-    #wallets = sorted(wallets,key=attrgetter('tokenaddress'))
 
     alltokens = wallets + pools
     totals = []
@@ -211,34 +206,17 @@ def consolidate(wallets,pools):
         for alltoken in alltokens:
             if tokenset == alltoken.tokenaddress:
                 qty += Decimal(alltoken.qty)
-                #symbol = alltoken.symbol
+                symbol = alltoken.symbol
                 name = alltoken.name
                 tokenaddress = alltoken.tokenaddress
         qty = str(qty)
-        totals.append(EthTokens(price="0",value="0",sortval=0.0,symbol=symbol,name=name,tokenaddress=tokenaddress,qty=qty))
-
-   # for wallet in wallets:
-      #  tracked.append(pool.tokenaddress)
-   #     qty = Decimal(wallet.qty)
-    #    for pool in pools:
-    #        if wallet.tokenaddress == pool.tokenaddress:
-  #              qty = qty + Decimal(pool.qty)
- 
-        
-     #   inwallet.append(wallet.tokenaddress)
-   
-   
-   
-
-
-    # pool remaining positions to be added 
-
-
+        totals.append(EthTokens(price="0",value="0",sortval=0.0,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))
 
 
 
     for token in totals:
         try: 
+            skip = False
             tokenaddress = token.tokenaddress
             if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":
                 tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
@@ -291,9 +269,9 @@ def getEthWalletTokens(ethaddy):
         while True: # loop until counter completes final token in wallet
             token = content['tokens'][lcv]       
             tokeninfo = token['tokenInfo']
+            notLP = True
             if tokeninfo['holdersCount'] > 0:
                 try:   
-                    notLP = True
                     balance = Decimal(token['balance'])
                     decimals = tokeninfo['decimals']
                     decimals = 10 ** int(decimals)
@@ -324,6 +302,7 @@ def getEthWalletTokens(ethaddy):
                                 qty = str(balance)
                                 price = "0"
                                 value = "0"
+                           
                                 tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress,price=price,value=value))
                                 #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
                                 #flash(msg)

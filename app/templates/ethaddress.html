@@ -26,6 +26,8 @@
 {% if totaltokens %}
 <h4><b>Combined Balancer LPs and wallet digital assets</b></h4>
 
+
+ 
 <table class="table table-striped">
     <thead>
        <tr>
@@ -40,8 +42,8 @@
     <tbody>
        {% for token in totaltokens %}
        <tr>
-          <td>{{ token.symbol}}</td>
-          <td>{{ token.name}}</td>
+          <td>{{ token.symbol }}</td>
+          <td>{{ token.name }}</td>
           <td>{{ token.price}}</td>
           <td>{{ token.qty }}</td>
           <td>{{ "${:,.2f}".format(token.sortval)}}</td>
