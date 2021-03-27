@@ -2,14 +2,14 @@ from app import app
 from operator import itemgetter, attrgetter
 
 class EthTokens(object):
-    def __init__(self,symbol,name,tokenaddress,qty,price,value,sortval=0.0):
+    def __init__(self,symbol,name,tokenaddress,qty,price,value,sortval):
         self.symbol = symbol
         self.price = price
         self.name = name
         self.tokenaddress = tokenaddress
         self.qty = qty
         self.value = value
-        self.sortval = 0.0
+        self.sortval = sortval
         
     def __iter__(self):
         return self
@@ -21,7 +21,7 @@ class EthTokens(object):
         self.qty = qty
      
     def update(self,price,value,sortval):
-        self.price = price
+        self.price=price
         self.value=value
         self.sortval=sortval
 

@@ -37,6 +37,7 @@ def ethaddress(ethaddress):
     ethbalance = results1[2]
     pools = ""
     totalrev = ""
+    totalvalue = results1[3]
     # From wallet holdings, check for BPTs (Balancer Pool Tokens)
 
     # If BPT found Collect pools the ETH address has 

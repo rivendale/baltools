@@ -162,21 +162,24 @@ def getBalancer(ethaddress):
                             balance = math.trunc(balance)
                         else:
                             balance=Decimal(str(balance)).quantize(Decimal('.001'), rounding=ROUND_DOWN)
-
-                        
+                        balance = float(balance)
                         tokenrev=str(tokenrev)
                         swapvol=str(swapvol)
                         tokenswap=str(tokenswap)
                         tokenpct=str(tokenpct)
                         totalshares=str(totalshares)
                         userbpt=str(userbpt)
-
-                        price = "0"
-                        value = "0"
-                        balance=str(balance)
-                        #
+                        # Reducing Coingecko calls due to rate limits
+                        price = 0.0
+                        value = 0.0
+                        sortval = 0.0
+                        price = str(price)
+                        value = str(value)
+                        balance = str(balance)
                         infodata.append(BalancerInfo(price=price,value=value,rev=tokenrev,swapvol=swapvol,swapfee=tokenswap,tokenaddress=tokenaddress,poolpct=tokenpct,totalshares=totalshares,userbalance=userbpt,useradr=useraddress,symbol=symbol,name=name,qty=balance,poolid=poolid))
-                        LPassets.append(EthTokens(price=price,value=value,symbol=symbol,name=name,tokenaddress=tokenaddress,qty=balance))
+                        LPassets.append(EthTokens(price=price,value=value,symbol=symbol,name=str(name),tokenaddress=tokenaddress,qty=balance,sortval=sortval))
+                            
+                            
         if (lcv < 1000):
             break
 
@@ -187,54 +190,69 @@ def getBalancer(ethaddress):
 def consolidate(wallets,pools):
     # Use Coingecko for pricing via tokenaddress
     #url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
- 
-    totalvalue = 0 
-
+    errors = False
+    totalvalue = 0.0 
+    # Combine all tokens and quantities from wallet tokens and Balancer pools together
     alltokens = wallets + pools
     totals = []
     tokensets = []
+    subcount = 0
+    keepcount = 0
 
+    # go thru each token one at a time, looking for duplicate entries between Balancer pools and Wallet tokens
     for alltoken in alltokens:
         tokenaddress = alltoken.tokenaddress
+        # this creates a single token list, ensuring no duplicate entries
         if tokenaddress not in tokensets:
-            tokensets.append(tokenaddress)
+            tokensets.append(tokenaddress)   # this will be a clean list of all tokens - only one entry per token type
 
-    for tokenset in tokensets:
-        qty = Decimal(0.0)
-        symbol = ""
-        name = ""
-        for alltoken in alltokens:
-            if tokenset == alltoken.tokenaddress:
-                qty += Decimal(alltoken.qty)
-                symbol = alltoken.symbol
+    for tokenset in tokensets:  # now that we have a single list to loop thru, we're now searching thru the entire list (with duplicates possibly)
+        qty = 0.0 # zero out the totals each iteration (unique so no repeats now) - as we know tokenset is a single list, we can iterate thru adding - use a float
+        for alltoken in alltokens: # tokenset is the clean list that gets iterated thru, each entry searches thru the token list, add duplicates together for totals
+            if tokenset == alltoken.tokenaddress:  # as tokenset is a subsection of alltokens, there will be at least a single entry, there may be duplicates across pools and wallet
+                qty += float(alltoken.qty)   # # in case of duplicates all totals together
+                symbol = alltoken.symbol  
                 name = alltoken.name
+                price = 0.0
                 tokenaddress = alltoken.tokenaddress
-        qty = str(qty)
-        totals.append(EthTokens(price="0",value="0",sortval=0.0,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))
-
-
-
-    for token in totals:
-        try: 
-            skip = False
-            tokenaddress = token.tokenaddress
-            if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":
-                tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
-            qty = Decimal(token.qty)
-            url2 = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
-            resp = requests.get(url2)
-            data = resp.json()
-            price = data[tokenaddress]["usd"]
-            price = Decimal(price)
-            sortval = price * qty
-            totalvalue += sortval
-            value = round(float(sortval),2)
-            price = round(float(price),4)
-            token.update(price=str(price),value=str(value),sortval=sortval)
+                value = 0.0
+                sortval = 0.0
+        
+        if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":  # staked 1INCH
+            tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
+        cgurl = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
+        try:
+            cgresp = requests.get(cgurl)
+            cgdata = cgresp.json()
+            price = Decimal(cgdata[tokenaddress]["usd"])
         except:
-            msg = "error obtaining pricing info for " + str(tokenaddress)
-           # flash(msg)
-    totalvalue = float(totalvalue)
+            #msg = "Error Saving token: Symbol: " + str(symbol) + " Name: " + str(name) + " Balance " + str(qty) + " Price: " + str(price) + " Total Value: " + str(value) + " address: " + str(tokenaddress) + " sortval: " + str(sortval)
+            #flash(msg)
+            errors = True
+            msg1 = sys.exc_info()[0]
+            msg2 = str(cgresp)
+        if price < 100.0:
+            price = float(price)
+            price=round(price,4)
+        else:
+            price = math.trunc(price)
+            price = float(price)
+        sortval = float(price * qty)
+        value = round(sortval,4)
+
+        totalvalue += sortval
+        qty = str(qty)
+        subcount += 1
+        if subcount > 7:
+            subcount = 0
+            keepcount = 0
+            while keepcount < 5000000:
+                keepcount += 1
+        totals.append(EthTokens(price=str(price),value=str(value),sortval=sortval,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))   
+
+    if errors:
+        flash(msg1)
+        flash(msg2)        
     totals = sorted(totals,key=attrgetter('sortval'),reverse=True)
     return totals,totalvalue
 
@@ -249,20 +267,16 @@ def getEthWalletTokens(ethaddy):
     # token info: getTokenInfo
     tokenlist = []
     foundBPT = False
-
+    totalvalue = 0.0
 
     response = requests.get(url)
     if response.status_code == 200:
+        # Etherscan - Address info
         content = response.json()
 
         # Obtain Ethereum wallet balance 
         ethbalance = Decimal(content['ETH']['balance'])
         ethbalance = round(ethbalance,4)
-        #
-        #tokenlist.append(EthTokens(symbol="ETH",name="Ethereum",qty=str(ethbalance),price=price,value=value,tokenaddress="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
-
-        
-
         # Obtain wallet ERC-20 token balances
         totalcount = len(content['tokens'])   # total ERC-20 tokens
         lcv = 0 # set counter to 0 for first ERC-20 token 
@@ -296,19 +310,18 @@ def getEthWalletTokens(ethaddy):
                             balance=round(balance,4)    
                         else:
                             balance = math.trunc(balance)
-                        
-                        try:
-                            if balance > 0.0: 
-                                qty = str(balance)
-                                price = "0"
-                                value = "0"
-                           
-                                tokenlist.append(EthTokens(symbol=symbol,name=name,qty=qty,tokenaddress=tokenaddress,price=price,value=value))
-                                #msg = "OK reading token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
-                                #flash(msg)
-                        except:
-                            msg = "Error Calculating token " + str(symbol) + " " + str(name) + " " + str(balance) + " " + str(tokenaddress)
-                            #flash(msg)
+                            balance = round(balance)
+                        if balance > 0.0:   # removed Coingecko to address rate limiting
+                            qty = str(balance)
+                            price = 0.0
+                            sortval = 0.0
+                            value = 0.0
+                            value = str(value)
+                            price = str(price)
+
+                            tokenlist.append(EthTokens(price=price,value=value,symbol=symbol,name=name,tokenaddress=tokenaddress,qty=qty,sortval=sortval))
+  
+                
                 except:
                     errormsg = "Error reading token " + str(symbol)
                    # flash(errormsg)
@@ -317,4 +330,5 @@ def getEthWalletTokens(ethaddy):
             if (lcv == totalcount):
                 break
     tokenlist = sorted(tokenlist,key=attrgetter('tokenaddress')) 
-    return tokenlist,foundBPT,ethbalance
+    totalvalue = str(totalvalue)
+    return tokenlist,foundBPT,ethbalance,totalvalue
