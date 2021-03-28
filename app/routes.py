@@ -52,7 +52,9 @@ def ethaddress(ethaddress):
         totalvalue = result3[1]
         # Combine Wallet ERC-21 tokens and Balancer Liquidity Pools
     else:
-        totaltokens = walletassets
+        result3 = consolidate(walletassets,"NONE")
+        totaltokens = result3[0]
+        totalvalue = result3[1]
         pools = ""
 
     return render_template('ethaddress.html', pools=pools,ethbalance=str(ethbalance),totalrev=totalrev, walletassets=walletassets,address=ethaddress,totalvalue=totalvalue,totaltokens=totaltokens )

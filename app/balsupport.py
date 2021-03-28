@@ -218,7 +218,10 @@ def consolidate(wallets,pools):
     errors = False
     totalvalue = 0.0 
     # Combine all tokens and quantities from wallet tokens and Balancer pools together
-    alltokens = wallets + pools
+    if pools == "NONE":
+        alltokens = wallets
+    else:
+        alltokens = wallets + pools
     totals = []
     tokensets = []
     subcount = 0
