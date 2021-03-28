@@ -358,5 +358,5 @@ def getEthWalletTokens(ethaddy):
             if (lcv == totalcount):
                 break
     tokenlist = sorted(tokenlist,key=attrgetter('tokenaddress')) 
-    totalvalue = str(totalvalue)
+    
     return tokenlist,foundBPT,ethbalance,totalvalue
