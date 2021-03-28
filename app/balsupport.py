@@ -240,15 +240,17 @@ def consolidate(wallets,pools):
         sortval = float(price * qty)
         value = round(sortval,4)
 
-        totalvalue += sortval
+        
         qty = str(qty)
         subcount += 1
         if subcount > 7:
             subcount = 0
             keepcount = 0
-            while keepcount < 5000000:
+            while keepcount < 500000000:
                 keepcount += 1
-        totals.append(EthTokens(price=str(price),value=str(value),sortval=sortval,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))   
+        if sortval > 5.0:
+            totalvalue += sortval
+            totals.append(EthTokens(price=str(price),value=str(value),sortval=sortval,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))   
 
     if errors:
         flash(msg1)

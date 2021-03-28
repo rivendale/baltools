@@ -30,13 +30,13 @@ def ethaddress(ethaddress):
     # Test variable to print directly to template output 
     temp = "Test Data placeholder "
 
+    totalvalue = 0.0
+    totalrev = 0.0
     # Collect all digital assets in the wallet
     results1= getEthWalletTokens(ethaddress)
     walletassets = results1[0]
     hasBPT = results1[1]
     ethbalance = results1[2]
-    pools = ""
-    totalrev = ""
     totalvalue = results1[3]
     # From wallet holdings, check for BPTs (Balancer Pool Tokens)
 
@@ -51,5 +51,8 @@ def ethaddress(ethaddress):
         totaltokens = result3[0]
         totalvalue = result3[1]
         # Combine Wallet ERC-21 tokens and Balancer Liquidity Pools
+    else:
+        totaltokens = walletassets
+        pools = ""
 
     return render_template('ethaddress.html', pools=pools,ethbalance=str(ethbalance),totalrev=totalrev, walletassets=walletassets,address=ethaddress,totalvalue=totalvalue,totaltokens=totaltokens )
