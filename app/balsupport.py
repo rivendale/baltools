@@ -1,10 +1,12 @@
 from flask import flash, redirect, render_template, url_for
 from datetime import datetime
-import os, sys, json, array, math, time, requests
+import os, sys, json, array, math, requests
+from time import time, sleep
 from operator import itemgetter
 from operator import attrgetter
 from decimal import *
 from app.models import *
+
 
 # Needed to calc today and yesterday timestamps
 from time import time
@@ -17,7 +19,30 @@ from time import time
 
 
 def checkspamtoken(tokenaddress):
-    spamlist = ["0x426ca1ea2406c07d75db9585f22781c096e3d0e0"]
+    spamlist = ["0x04ad70466a79dd1251f22ad426248088724ff32b","0x0deecb13f4e801bdbf2721875756d44b207ca580","0x1234567461d3f8db7496581774bd869c83d51c93",
+    "0x15e4cf1950ffa338ce5bc59456b3e579ed1bead3","0x1e28439d814486c9d989e55b1993c2f1447957cc","0x253f6e0bfe6c7675e8513b4c132f00b00b951d5e",
+    "0x2630997aab62fa1030a8b975e1aa2dc573b18a13","0xedf44412b47a76e452fd133794e45d9485e4cd4b","0x888666ca69e0f178ded6d75b5726cee99a87d698",
+    "0x322f4f6a48329690957a3bcbd1301516c2b83c1f","0x3a4a0d5b8dfacd651ee28ed4ffebf91500345489","0x3a7ebc138fd59ccce16b7968199c2ac7b013bbc0",
+    "0x3da85b2a7cf6f3ccec6953776161750681a7560f","0x4022eb64d742d88f71070ba6a1fcbb5d11275a9f","0x426ca1ea2406c07d75db9585f22781c096e3d0e0",
+    "0x429ac77f069bff489e2d78f9479e1e933305c528","0x47f32f9ebfc49a1434eb6190d5d8a80a2dc36af5","0x4c1c4957d22d8f373aed54d0853b090666f6f9de",
+    "0x4c6112f9652463f5bdcb954ff6b650acb64e47cc","0x4dc3643dbc642b72c158e7f3d2ff232df61cb6ce","0x5245789633b5d0ebd21e393c3d7ead22d5ad1517",
+    "0x52903256dd18d85c2dc4a6c999907c9793ea61e3","0x5b46b3705dbe773ffa878aa4ff064522ce347275","0x639ae8f3eed18690bf451229d14953a5a5627b72",
+    "0x63a18bc38d1101db7f0efcbcbdcbe927a5879039","0x68e14bb5a45b9681327e16e528084b9d962c1a39","0x708b63545467a9bcfb67af92299102c650e34a0e",
+    "0x72adadb447784dd7ab1f472467750fc485e4cb2d","0x741d63278490a33f705519cfd5c56fe470726ee8","0x75efc1111f98f2d5dcec9851c8abc77cd5e6ced8",
+    "0x77fe30b2cf39245267c0a5084b66a560f1cf9e1f","0x7995ab36bb307afa6a683c24a25d90dc1ea83566","0x7b2f9706cd8473b4f5b7758b0171a9933fc6c4d6",
+    "0x7b53b2c4b2f495d843a4e92e5c5511034d32bd15","0x7d3e7d41da367b4fdce7cbe06502b13294deb758","0x7f1f2d3dfa99678675ece1c243d3f7bc3746db5d",
+    "0x80d607b3ede3b3ebd55fcf1369882d0b668b9be2","0x8c4e7f814d40f8929f9112c5d09016f923d34472","0x8e4fbe2673e154fe9399166e03e18f87a5754420",
+    "0x8f7b0b40e27e357540f90f187d90ce06366ac5a5","0x977b0584b50cdd64e2f8185b682a1f256448c7c8","0x9c5c3395b9b791d2edd472592045fb341e115c3b",
+    "0x9fe173573b3f3cf4aebce5fd5bef957b9a6686e8","0xa2dca1505b07e39f96ce41e875b447f46d50c6fc","0xa38b7ee9df79955b90cc4e2de90421f6baa83a3d",
+    "0xaa1bbd948a0a4835e45f672d34f50eed819a9255","0xac9bb427953ac7fddc562adca86cf42d988047fd","0xae66d00496aaa25418f829140bb259163c06986e",
+    "0xaf47ebbd460f21c2b3262726572ca8812d7143b0","0xb7fbe91752dd926a5ea103f1b2e8b6fd2cee4d91","0xbab6f30c81209433a3ced28ca8e19256440547d9",
+    "0xbddab785b306bcd9fb056da189615cc8ece1d823","0xbf4a2ddaa16148a9d0fa2093ffac450adb7cd4aa","0xc12d1c73ee7dc3615ba4e37e4abfdbddfa38907e",
+    "0xc3761eb917cd790b30dad99f6cc5b4ff93c4f9ea","0xc92e74b131d7b1d46e60e07f3fae5d8877dd03f0","0xcdc7faa3a06733d50d4bf86b5c7cd9460c35691e",
+    "0xd037a81b22e7f814bc6f87d50e5bd67d8c329fa2","0xd51e852630debc24e9e1041a03d80a0107f8ef0c","0xdb455c71c1bc2de4e80ca451184041ef32054001",
+    "0xdff3718cd0fda48e045bac6ad66950fa259f51b5","0xe03b4386b75e121e04d580d6b8376ceee0615ca8","0xedf44412b47a76e452fd133794e45d9485e4cd4b",
+    "0xf18432ef894ef4b2a5726f933718f5a8cf9ff831","0xf3e014fe81267870624132ef3a646b8e83853a96","0xf6276830c265a779a2225b9d2fcbab790cbeb92b",
+    "0xf6317dd9b04097a9e7b016cd23dcaa7cfe19d9c6","0x58b6a8a3302369daec383334672404ee733ab239"]
+
     if tokenaddress in spamlist:
         return True
     else:
@@ -198,6 +223,7 @@ def consolidate(wallets,pools):
     tokensets = []
     subcount = 0
     keepcount = 0
+    junktokens = 0
 
     # go thru each token one at a time, looking for duplicate entries between Balancer pools and Wallet tokens
     for alltoken in alltokens:
@@ -217,44 +243,44 @@ def consolidate(wallets,pools):
                 tokenaddress = alltoken.tokenaddress
                 value = 0.0
                 sortval = 0.0
-        
-        if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":  # staked 1INCH
-            tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
-        cgurl = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
-        try:
-            cgresp = requests.get(cgurl)
-            cgdata = cgresp.json()
-            price = Decimal(cgdata[tokenaddress]["usd"])
-        except:
-            #msg = "Error Saving token: Symbol: " + str(symbol) + " Name: " + str(name) + " Balance " + str(qty) + " Price: " + str(price) + " Total Value: " + str(value) + " address: " + str(tokenaddress) + " sortval: " + str(sortval)
-            #flash(msg)
-            errors = True
-            msg1 = sys.exc_info()[0]
-            msg2 = str(cgresp)
-        if price < 100.0:
-            price = float(price)
-            price=round(price,4)
+        if checkspamtoken(tokenaddress):
+            junktokens += 1
         else:
-            price = math.trunc(price)
-            price = float(price)
-        sortval = float(price * qty)
-        value = round(sortval,4)
+            if tokenaddress == "0xa0446d8804611944f1b527ecd37d7dcbe442caba":  # staked 1INCH
+                tokenaddress = "0x111111111117dc0aa78b770fa6a738034120c302"
+            cgurl = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + tokenaddress +"&vs_currencies=usd"
+            try:
+                cgresp = requests.get(cgurl)
+                cgdata = cgresp.json()
+                price = Decimal(cgdata[tokenaddress]["usd"])
+            except:
+                #msg = "Error Saving token: Symbol: " + str(symbol) + " Name: " + str(name) + " Balance " + str(qty) + " Price: " + str(price) + " Total Value: " + str(value) + " address: " + str(tokenaddress) + " sortval: " + str(sortval)
+                #flash(msg)
+                errors = True
+                msg1 = sys.exc_info()[0]
+                msg2 = str(cgresp)
+            if price < 100.0:
+                price = float(price)
+                price=round(price,4)
+            else:
+                price = math.trunc(price)
+                price = float(price)
+            sortval = float(price * qty)
+            value = round(sortval,4)
+            qty = str(qty)
+            subcount += 1
+            if subcount > 98:
+                subcount = 0
+                #flash ("maximum API calls to Coingecko reached, need to pause for 60 seconds")
+                sleep(60)
+            if sortval > 5.0:
+                totalvalue += sortval
+                totals.append(EthTokens(price=str(price),value=str(value),sortval=sortval,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))   
 
-        
-        qty = str(qty)
-        subcount += 1
-        if subcount > 7:
-            subcount = 0
-            keepcount = 0
-            while keepcount < 500000000:
-                keepcount += 1
-        if sortval > 5.0:
-            totalvalue += sortval
-            totals.append(EthTokens(price=str(price),value=str(value),sortval=sortval,symbol=str(symbol),name=name,tokenaddress=tokenaddress,qty=qty))   
-
-    if errors:
-        flash(msg1)
-        flash(msg2)        
+   # if errors:
+       # flash(msg1)
+       # flash(msg2)   
+   
     totals = sorted(totals,key=attrgetter('sortval'),reverse=True)
     return totals,totalvalue
 
